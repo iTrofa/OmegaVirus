@@ -1,0 +1,15 @@
+#!/bin/python3
+
+import yara
+import json
+
+rules = yara.compile('../our_rules/creds_ru.yara')
+rules.save('my_saved_rules')
+rules = yara.load('my_saved_rules')
+
+def mycallback(data):
+  print(data)
+  return yara.CALLBACK_CONTINUE
+
+ 
+matches = rules.match('../virus_samples/dc030778938b8b6f98236a709d0d18734c325accf44b12a55ecc2d56b8bb9000', callback=mycallback, which_callbacks=yara.CALLBACK_MATCHES)
