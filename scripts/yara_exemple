@@ -8,7 +8,7 @@ rules.save('my_saved_rules')
 rules = yara.load('my_saved_rules')
 
 def mycallback(data):
-  print(data)
+  print(data['meta'])
   return yara.CALLBACK_CONTINUE
 
  
