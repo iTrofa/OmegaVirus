@@ -112,7 +112,7 @@
             </div>
             <div class="card-body">
               <div class="row icon-examples">
-                  <form action="/file-upload" method="post" class="dropzone dragdrop">
+                  <form action="uploads/" method="POST" class="dropzone dragdrop">
                       {% csrf_token %}
                       <div class="fallback">
                         <input name="file" type="file" multiple />
