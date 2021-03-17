@@ -25,3 +25,15 @@
     });
   });
 });
+
+// Initialise DropZone form control
+// dropzoneJsForm = the id of your dropzone form
+options.dropzoneJsForm = {
+    maxFilesize: 10, // Mb
+    init: function () {
+        // Set up any event handlers
+        this.on('complete', function () {
+            location.reload();
+        });
+    }
+};
