@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Upload Files</title>
+</head>
+<body>
+
+<h1>File Uploader</h1>
+<form enctype="multipart/form-data" method="POST" action="">
+{% csrf_token %}
+{{ form.as_p }}
+    <input type="file" name="file">
+    <input type="submit" value="Upload"/>
+</form>
+
+<br><br>
+<a href="{{ MEDIA_URL }}{{ filepath }}" target="_blank">{{ filename }}</a>
+<br><br>
+</p>
+
+</body>
+</html>
