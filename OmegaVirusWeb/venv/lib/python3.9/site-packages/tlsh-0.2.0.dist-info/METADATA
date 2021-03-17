@@ -1,0 +1,29 @@
+Metadata-Version: 2.1
+Name: tlsh
+Version: 0.2.0
+Summary: TLSH (C++ version)
+Home-page: https://github.com/trendmicro/tlsh
+Author: Chun Cheng
+License: UNKNOWN
+Platform: UNKNOWN
+Description-Content-Type: text/markdown
+
+A C++ extension for TLSH  
+
+Usage:  
+```python
+import tlsh
+h1 = tlsh.hash(data)
+h2 = tlsh.hash(similar_data)
+score = tlsh.diff(h1, h2)
+
+h3 = tlsh.Tlsh()
+with open('file', 'rb') as f:
+    for buf in iter(lambda: f.read(512), b''):
+        h3.update(buf)
+    h3.final()
+assert h3.diff(h) == 0
+score = h3.diff(h1)
+```
+
+
