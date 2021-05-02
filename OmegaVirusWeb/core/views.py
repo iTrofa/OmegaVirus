@@ -1,3 +1,5 @@
+import math
+
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
 from django.http import HttpResponse, JsonResponse
@@ -16,17 +18,33 @@ class MainView(TemplateView):
     template_name = 'scans.html'
 
 
+def convert_size(size_bytes):
+    if size_bytes == 0:
+        return "0B"
+    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return "%s %s" % (s, size_name[i])
+
+
 def latest(request):
     try:
         obj = File.objects.latest('id')
-        print("im in")
+        obj2 = Hash.objects.latest('id')
         context = {
             "name": obj.name,
             "id": obj.id,
             "SHA256": obj.SHA256,
             "filepath": obj.filepath,
             "size": obj.size,
-            "date": obj.date
+            "date": obj.date,
+            "MD5": obj2.MD5,
+            "SHA1": obj2.SHA1,
+            "SHA512": obj2.SHA512,
+            "SSDEEP": obj2.SSDEEP,
+            "TLSH": obj2.TLSH,
+            "safety": "No security vendors flagged this file as malicious"
         }
         return render(request, "index.html", context)
     except ObjectDoesNotExist:
@@ -75,12 +93,26 @@ def file_upload_view(request):
                 SSDEEP = ssdeep.hash(data)
                 TLSH = tlsh.hash(data)
 
-        b = File(SHA256="{0}".format(sha256.hexdigest()), name=my_file.name, filepath=path, size=my_file.size, date=now)
+        b = File(SHA256="{0}".format(sha256.hexdigest()), name=my_file.name, filepath=path, size=convert_size(my_file.size), date=now)
         b.save()
         h = Hash(SHA256="{0}".format(sha256.hexdigest()), SHA512="{0}".format(sha512.hexdigest()),
                  SHA1="{0}".format(sha1.hexdigest()), MD5="{0}".format(md5.hexdigest()),
                  SSDEEP="{0}".format(SSDEEP), TLSH="{0}".format(TLSH))
         h.save()
-        return HttpResponse('File scanned')
+        try:
+            obj = File.objects.latest('id')
+            print("im in")
+            context = {
+                "name": obj.name,
+                "id": obj.id,
+                "SHA256": obj.SHA256,
+                "filepath": obj.filepath,
+                "size": obj.size,
+                "date": obj.date
+            }
+            return redirect('latest')
+            # return render(request, "index.html", context)
+        except ValueError:
+            return redirect('latest')
 
 # select_date_sql  = SELECT * FROM `FileScanner_file` ORDER BY `FileScanner_file`.`date` DESC LIMIT 1
