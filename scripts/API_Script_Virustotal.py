@@ -40,6 +40,7 @@ def info_file(filename):
 
 
 file_md5 = info_file(filename)
+print(file_md5)
 
 API_KEY = '38afdb6f1267ae26374823c5e80d84fc977ed7b326b152d21fedd15ca29f36dc'
 
