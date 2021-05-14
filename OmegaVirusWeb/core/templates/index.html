@@ -71,11 +71,16 @@
                                 <div class="row">
                                     <div class="col">
                                         <h5 class="card-title text-uppercase text-muted mb-0">Safety</h5>
-                                        <span class="h2 font-weight-bold mb-0" style="font-size: 1.14rem ">
-                                            {% if safety %}
-                                               {{ safety }}
-                                            {% endif %}
+                                            {% if safetyPos %}
+                                        <span class="h2 font-weight-bold mb-0 text-red" style="font-size: 1.14rem ">
+                                               {{ safetyPos }}
                                         </span>
+                                            {% endif %}
+                                      {% if safety %}
+                                        <span class="h2 font-weight-bold mb-0 text-red" style="font-size: 1.14rem ">
+                                               {{ safety }}
+                                        </span>
+                                            {% endif %}
                                     </div>
                                     <!--<div class="col-auto">
                                         <div class="icon icon-shape bg-yellow text-white rounded-circle shadow">
