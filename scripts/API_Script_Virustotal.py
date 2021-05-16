@@ -113,7 +113,15 @@ positives = json_list['results']['positives']
 total = json_list['results']['total']
 md5 = json_list['results']['md5']
 liste_AV=[i for i in json_list["results"]["scans"]]
-liste_AV_Result=[str(i) + " ----- " + str(json_list["results"]["scans"][i]["detected"]) for i in liste_AV] 
+liste_AV_Result=[str(i) + " ----- " + str(json_list["results"]["scans"][i]["detected"]) for i in liste_AV]
+liste_AV_result_html=[(str(i),str(json_list["results"]["scans"][i]["detected"])) for i in liste_AV]
+
+
+html=str()
+for i,j in liste_AV_result_html:
+    html+='</tr><th scope="row">'+i+'</th><td>'+j+'</td></tr>'
+
+print(html)
 
 print(response_code)
 print(scan_id)
