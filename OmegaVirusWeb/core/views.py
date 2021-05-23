@@ -16,6 +16,9 @@ import tlsh
 import json
 import sys
 import time
+import os
+import subprocess
+import re
 from virus_total_apis import PublicApi as VirusTotalPublicApi
 
 
@@ -98,17 +101,71 @@ def latest(request):
         total = json_list['results']['total']
         md5 = json_list['results']['md5']
 
-        liste_AV = [i for i in json_list["results"]["scans"]]
-        liste_AV_result_html = [(str(i), str(json_list["results"]["scans"][i]["detected"])) for i in liste_AV]
 
-        html = str()
-        for i, j in liste_AV_result_html:
-            if j == "True":
-                html += '<tr><th scope="row"><b>' + i + '</b></th><td style="color:green;"><b>' + j + '</b></td></tr>'
-            if j == "False":
-                html += '<tr><th scope="row"><b>' + i + '</b></th><td style="color:red;"><b>' + j + '</b></td></tr>'
+	# Liste AV -- Resultat
+        liste_AV=[i for i in json_list["results"]["scans"]]
+        liste_AV_result_html=[(str(i),str(json_list["results"]["scans"][i]["detected"])) for i in liste_AV]
 
-        print(html)
+        html=str()
+        cptdetected=0
+        cptnodetected=0
+        for i,j in liste_AV_result_html:
+            if j=="True":
+                html+='<tr><th scope="row"><b>'+i+'</b></th><td style="color:red;"><b>'+"Detected"+'</b></td></tr>'
+                cptdetected+=1
+            if j=="False":
+                html+='<tr><th scope="row"><b>'+i+'</b></th><td style="color:green;"><b>'+"No detected"+'</b></td></tr>'
+                cptnodetected+=1
+
+        ###########
+        # Liste Hash --- New Version
+        liste_hash=[("MD5", obj2.MD5), ("SHA1", obj2.SHA1), ("SHA256", obj2.SHA256), ("SHA512", obj2.SHA512), ("SSDEEP", obj2.SSDEEP), ("TLSH", obj2.TLSH)]
+        html_hash=str()
+        for i,j in liste_hash:
+        	html_hash+='<tr><th scope="row" style="color:red;"><b>'+i+'</b></th><td style="color:blue;"><b>'+j+'</b></td></tr>'
+        ##############################
+
+        ## Yara ##
+        html_yara=str()
+        yara_matched=(("regleyara1", "posay", "30"), ("regleyara2", "posay", "80"), ("regleyara2", "posay", "30"), ("regleyara3", "posay", "80"))
+        for nom_regle,j,k in yara_matched:
+        	html_yara+='<tr><th scope="row" style="color:red;"><b>'+ nom_regle +'</b></th></tr>'
+
+   	################# Json #############
+        with open("/root/OmegaVirus/scripts/report.json") as json_cuckoo:
+        	data_cuckoo=json.load(json_cuckoo)
+        cuckoo_score=float(data_cuckoo["info"]["score"])
+        html_cuckoo=str()
+        for i in data_cuckoo["info"]:
+        	dico=data_cuckoo["info"][i]
+        	if i!="score":
+        		html_cuckoo+='<tr><th scope="row">'+str(i)+'</th><td>'+str(dico)+'</td></tr>'
+
+        ###############################################################
+        html_notation=str()
+        av_notation=str(cptdetected)+"/"+str(cptdetected+cptnodetected)
+        av_notation_pourcent=str(int((int(cptdetected)/int(cptdetected+cptnodetected))*100))
+
+        if int(float(av_notation_pourcent))>80:
+        	progress_bar_color="success"
+        elif int(float(av_notation_pourcent))>40:
+        	progress_bar_color="primary"
+        else:
+        	progress_bar_color="danger"
+
+        cuckoo_note=str(float(cuckoo_score))
+        cuckoo_note_pourcent=str(int((float(cuckoo_score)/10)*100))
+
+        if int(float(cuckoo_note_pourcent))>80:
+        	progress_bar_color1="success"
+        elif int(float(cuckoo_note_pourcent))>40:
+        	progress_bar_color1="primary"
+        else:
+        	progress_bar_color1="danger"
+
+        html_notation+='<tr><th scope="row">Antivirus Detection</th><td>'+av_notation+'</td><td><div class="d-flex align-items-center"><span class="mr-2">'+av_notation_pourcent+'%</span><div><div class="progress"><div class="progress-bar bg-gradient-'+progress_bar_color+'" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: '+av_notation_pourcent+'%;"></div></div></div></div></td></tr>'
+        html_notation+='<tr><th scope="row">Cuckoo Detection</th><td>'+cuckoo_note+'/10</td><td><div class="d-flex align-items-center"><span class="mr-2">'+cuckoo_note_pourcent+'%</span><div><div class="progress"><div class="progress-bar bg-gradient-'+progress_bar_color1+'" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: '+cuckoo_note_pourcent+'%;"></div></div></div></div></td></tr>'
+
         print(response_code)
         print(scan_id)
         print(sha1)
@@ -136,17 +193,22 @@ def latest(request):
             "TLSH": obj2.TLSH,
             "total": total,
             "positives": positives,
-            "html": mark_safe(html)
+            "html": mark_safe(html),
+            "html_hash":mark_safe(html_hash),
+            "html_yara":mark_safe(html_yara),
+            "cuckoo_score":cuckoo_score,
+            "cuckoo_info":mark_safe(html_cuckoo),
+            "html_notation":mark_safe(html_notation)
         }
 
         if positives == 0:
-            safety = "No security vendors flagged this file as malicious"
+            safety = "OmegaVirus flagged this file as malicious"
             context2 = {
                 "safety": safety
             }
             context.update(context2)
         else:
-            safety = str(positives) + " security vendors flagged this file as malicious"
+            safety = str(positives) + " OmegaVirus flagged this file as malicious"
             context2 = {
                 "safetyPos": safety
             }
