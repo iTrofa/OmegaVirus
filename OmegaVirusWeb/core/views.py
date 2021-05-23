@@ -57,7 +57,7 @@ def latest(request):
 
         if verbose_msg != "Scan finished, information embedded":
             print("Uploading file..")
-            path = "/root/OmegaVirus/OmegaVirusWeb/core/uploads/" + obj.name
+            path = "/root/Desktop/OmegaVirus/OmegaVirusWeb/core/uploads/" + obj.name
             print(path)
 
             vt.scan_file(path)
@@ -98,16 +98,16 @@ def latest(request):
         total = json_list['results']['total']
         md5 = json_list['results']['md5']
 
-        liste_AV=[i for i in json_list["results"]["scans"]]
-        liste_AV_result_html=[(str(i),str(json_list["results"]["scans"][i]["detected"])) for i in liste_AV]       
+        liste_AV = [i for i in json_list["results"]["scans"]]
+        liste_AV_result_html = [(str(i), str(json_list["results"]["scans"][i]["detected"])) for i in liste_AV]
 
-        html=str()
-        for i,j in liste_AV_result_html:
-            if j=="True":
-                html+='<tr><th scope="row"><b>'+i+'</b></th><td style="color:green;"><b>'+j+'</b></td></tr>'
-            if j=="False":
-                html+='<tr><th scope="row"><b>'+i+'</b></th><td style="color:red;"><b>'+j+'</b></td></tr>'
-                
+        html = str()
+        for i, j in liste_AV_result_html:
+            if j == "True":
+                html += '<tr><th scope="row"><b>' + i + '</b></th><td style="color:green;"><b>' + j + '</b></td></tr>'
+            if j == "False":
+                html += '<tr><th scope="row"><b>' + i + '</b></th><td style="color:red;"><b>' + j + '</b></td></tr>'
+
         print(html)
         print(response_code)
         print(scan_id)
@@ -184,7 +184,7 @@ def file_upload_view(request):
         sha512 = hashlib.sha512()
         sha1 = hashlib.sha1()
 
-        with open("/root/OmegaVirus/OmegaVirusWeb/core/uploads/" + path, 'rb') as f:
+        with open("/root/Desktop/OmegaVirus/OmegaVirusWeb/core/uploads/" + path, 'rb') as f:
             while True:
                 data = f.read(BUF_SIZE)
                 if not data:
