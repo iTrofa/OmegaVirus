@@ -40,7 +40,7 @@ while(date1 == date2):
 		print(date2)
 time.sleep(5)
 ftp_client=ssh.open_sftp()
-ftp_client.get("/root/.cuckoo/storage/analyses/"+str(analyze_id)+"/reports/report.json","/tmp/report.json")
+ftp_client.get("/root/.cuckoo/storage/analyses/"+str(analyze_id)+"/reports/report.json","/root/Desktop/OmegaVirus/scripts/report.json")
 ftp_client.close()
 #except Exception as e:
 #    print(e)

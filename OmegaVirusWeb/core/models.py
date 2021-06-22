@@ -7,6 +7,8 @@ class File(models.Model):
     filepath = models.CharField(max_length=250)
     size = models.CharField(max_length=250)
     date = models.DateTimeField()
+    detection = models.CharField(max_length=250, default="")
+    first = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
