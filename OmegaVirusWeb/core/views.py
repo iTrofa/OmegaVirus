@@ -1,25 +1,24 @@
-import math
-
-from django.shortcuts import render, redirect
-from django.views.generic import TemplateView, ListView
-from django.http import HttpResponse, JsonResponse
-from django.core.files.storage import FileSystemStorage
-from django.utils.safestring import mark_safe
-from .forms import FileForm
-from .models import File, Hash
-from django.utils import timezone
 # import uuid
 import hashlib
-from django.core.exceptions import ObjectDoesNotExist
+import json
+import math
+# Bring your packages onto the path
+import os
+import sys
+
 import ssdeep
 import tlsh
-import json
-import sys
-import time
-import os
-import subprocess
-import re
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.files.storage import FileSystemStorage
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from django.utils.safestring import mark_safe
+from django.views.generic import TemplateView
 from virus_total_apis import PublicApi as VirusTotalPublicApi
+from .models import File, Hash
+
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 
 
 class MainView(TemplateView):
@@ -223,6 +222,23 @@ def detailGET(request):
                 "cuckoo_info": mark_safe(html_cuckoo),
                 "html_notation": mark_safe(html_notation)
             }
+            URLS = []
+            URLS = urls()
+            print("Found " + str(len(URLS)) + " URLs in this file.")
+            signatures = []
+            signatures = Signatures()
+            cuckoo_info = str()
+            cuckoo_info += "<tr><td><b>Found " + str(len(URLS)) + " URLs in this file.</b></td></tr>"
+            for x in URLS:
+                cuckoo_info += '<tr><td>' + x + '</td></tr>'
+
+            for y in signatures:
+                cuckoo_info += '<tr><td>' + y + '</td></tr>'
+
+            context2 = {
+                "cuckoo_information": mark_safe(cuckoo_info)
+            }
+            context.update(context2)
 
             if positives == 0:
                 safety = "OmegaVirus flagged this file as safe"
@@ -411,7 +427,23 @@ def latest(request):
             "cuckoo_info": mark_safe(html_cuckoo),
             "html_notation": mark_safe(html_notation)
         }
+        URLS = []
+        URLS = urls()
+        print("Found " + str(len(URLS)) + " URLs in this file.")
+        signatures = []
+        signatures = Signatures()
+        cuckoo_info = str()
+        cuckoo_info += "<tr><td><b>Found " + str(len(URLS)) + " URLs in this file.</b></td></tr>"
+        for x in URLS:
+            cuckoo_info += '<tr><td>' + x + '</td></tr>'
 
+        for y in signatures:
+            cuckoo_info += '<tr><td>' + y + '</td></tr>'
+
+        context2 = {
+            "cuckoo_information": mark_safe(cuckoo_info)
+        }
+        context.update(context2)
         if positives == 0:
             safety = "OmegaVirus flagged this file as safe"
             context2 = {
@@ -601,7 +633,23 @@ def detail(request, file_id):
             "cuckoo_info": mark_safe(html_cuckoo),
             "html_notation": mark_safe(html_notation)
         }
+        URLS = []
+        URLS = urls()
+        print("Found " + str(len(URLS)) + " URLs in this file.")
+        signatures = []
+        signatures = Signatures()
+        cuckoo_info = str()
+        cuckoo_info += "<tr><td><b>Found " + str(len(URLS)) + " URLs in this file.</b></td></tr>"
+        for x in URLS:
+            cuckoo_info += '<tr><td>' + x + '</td></tr>'
 
+        for y in signatures:
+            cuckoo_info += '<tr><td>' + y + '</td></tr>'
+
+        context2 = {
+            "cuckoo_information": mark_safe(cuckoo_info)
+        }
+        context.update(context2)
         if positives == 0:
             safety = "OmegaVirus flagged this file as safe"
             context2 = {
@@ -646,11 +694,13 @@ def file_upload_view(request):
                 TLSH = tlsh.hash(data)
 
         if File.objects.filter(SHA256=sha256.hexdigest()).exists():
-            b = File(SHA256="{0}".format(sha256.hexdigest()), name=my_file.name, filepath=path, size=convert_size(my_file.size), date=now, first=False)
+            b = File(SHA256="{0}".format(sha256.hexdigest()), name=my_file.name, filepath=path,
+                     size=convert_size(my_file.size), date=now, first=False)
             b.save()
 
         else:
-            b = File(SHA256="{0}".format(sha256.hexdigest()), name=my_file.name, filepath=path, size=convert_size(my_file.size), date=now, first=True)
+            b = File(SHA256="{0}".format(sha256.hexdigest()), name=my_file.name, filepath=path,
+                     size=convert_size(my_file.size), date=now, first=True)
             b.save()
 
         h = Hash(SHA256="{0}".format(sha256.hexdigest()), SHA512="{0}".format(sha512.hexdigest()),
@@ -672,6 +722,61 @@ def file_upload_view(request):
         # return render(request, "index.html", context)
     except ValueError:
         return redirect('latest')
+
+
+def urls():
+    f = open("/root/Desktop/OmegaVirus/scripts/report.json")
+    data = json.load(f)
+    urls = []
+    """for i in data:
+        # print(i)
+        # print("--------------")"""
+
+    """for j in data[i]:
+        print(j)"""
+    for j in data["strings"]:
+        validate = URLValidator()
+        try:
+            validate(j)
+            urls.append(j)
+        except ValidationError as exception:
+            continue
+    # print("Found " + str(len(urls)) + " URLs in this file.")
+    f.close()
+    return urls
+
+
+def Signatures():
+    signature = []
+    f = open("/root/Desktop/OmegaVirus/scripts/report.json")
+    data = json.load(f)
+    for j in data["signatures"]:
+        # print("File " + str(j['description']))
+        signature.append("<b>"+j['description']+"</b>")
+        # print(j['marks'])
+
+        for x in j["marks"]:
+            if j[
+                'description'] != "Checks for the Locally Unique Identifier on the system for a suspicious privilege" and \
+                    j['description'] != "Allocates read-write-execute memory (usually to unpack itself)" and j[
+                'description'] != "Queries for potentially installed applications" and j[
+                'description'] != "Collects information about installed applications":
+                # print(x)
+                try:
+                    # print(x['category'])
+                    # print(x['ioc'])
+                    signature.append(x['ioc'])
+                except KeyError:
+                    continue
+        # signature.append("<b>##########</b>")
+        # print("##########")
+        """for k in data[j]:
+            print(k)"""
+    """for y in signature:
+        print(y)"""
+    # Closing file
+    f.close()
+    return signature
 
 
 """
