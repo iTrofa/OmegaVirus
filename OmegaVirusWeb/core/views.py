@@ -552,12 +552,29 @@ def detail(request, file_id):
             html_hash += '<tr><th scope="row" style="color:red;"><b>' + i + '</b></th><td style="color:blue;"><b>' + j + '</b></td></tr>'
         ##############################
 
-        ## Yara ##
-        html_yara = str()
-        yara_matched = (("yararule1", "posay", "30"), ("yararule2", "posay", "80"), ("yararule2", "posay", "30"),
-                        ("yararule3", "posay", "80"))
-        for nom_regle, j, k in yara_matched:
-            html_yara += '<tr><th scope="row" style="color:red;"><b>' + nom_regle + '</b></th></tr>'
+        ######################################## Yara ##########################################
+        path_rules="../../rules"
+        list_dir=os.listdir(path_rules)
+        file_to_analyse="../../file.txt"
+        liste_yara_matched=list()
+        for i in range(len(list_dir)):
+            out=subprocess.Popen(["yara", path_rules+"/"+list_dir[i], file_to_analyse],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT)
+            stdout,stderr=out.communicate()
+            chaine=str(stdout)
+            if len(chaine)>3:
+                RE=re.compile(" +")
+                a,b=re.search(" +", chaine).span()
+                    liste_yara_matched.append(chaine[2:a])
+
+        html_yara=str()
+        yara_matched=liste_yara_matched
+        for nom_regle in yara_matched:
+            html_yara+='<tr><th scope="row" style="color:red;"><b>'+ nom_regle +'</b></th></tr>'
+        ######################################## Yara ##########################################
+
+
 
         ################# Json #############
         with open("/root/Desktop/OmegaVirus/scripts/report.json") as json_cuckoo:

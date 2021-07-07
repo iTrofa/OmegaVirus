@@ -1,0 +1,7 @@
+Can't find Payload() address
+/SilverApp1;component/App.xaml
+Can't allocate ums after buf[]
+------------ START ------------
+CAFEEFAC-DEC7-0000-0000-ABCDEFFEDCBA
+document.createElement(\"OBJECT\")
+application/npruntime-scriptable-plugin;deploymenttoolkit
